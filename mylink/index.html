@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>마이링크 (MyLink) - 노기훈</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>" />
+  
+  <!-- Pretendard Font -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            tds: {
+              blue: '#3182f6',
+              blueHover: '#1b64da',
+              bg: '#f9fafb',
+              card: '#ffffff',
+              border: '#e5e8eb',
+              textPrimary: '#191f28',
+              textSecondary: '#4e5968',
+              textMuted: '#8b95a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .tap-highlight-transparent {
+      -webkit-tap-highlight-color: transparent;
+    }
+    @keyframes toast-in {
+      from { transform: translate(-50%, -20px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+    @keyframes toast-out {
+      from { transform: translate(-50%, 0); opacity: 1; }
+      to { transform: translate(-50%, -20px); opacity: 0; }
+    }
+    .toast-animate-in {
+      animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .toast-animate-out {
+      animation: toast-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-[#f9fafb] text-tds-textPrimary min-h-screen py-6 sm:py-10 px-4 flex flex-col items-center tap-highlight-transparent">
+
+  <!-- 토스트 알림 창 (기본 숨김) -->
+  <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 hidden">
+    <div class="bg-white/95 backdrop-blur-md border border-tds-border px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-[14px] font-semibold text-tds-textPrimary">
+      <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <span id="toast-message">링크가 클립보드에 복사되었습니다.</span>
+    </div>
+  </div>
+
+  <!-- 메인 컨테이너 (최대 너비 460px - 모바일 친화 카드 뷰) -->
+  <main class="w-full max-w-[460px] flex flex-col gap-4">
+
+    <!-- 상단 안내 배너 (과제 연동 & Next.js 원본 저장소 안내) -->
+    <div class="w-full bg-[#191f28] text-white px-4 py-3 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+        <div class="flex flex-col min-w-0">
+          <span class="text-[13px] font-semibold truncate">과제 제출용 공식 마이링크</span>
+          <span class="text-[11px] text-gray-300 font-mono truncate">한양대 e-러닝 2026 · /mylink</span>
+        </div>
+      </div>
+      <a href="https://github.com/tkflrnstk/mylink" target="_blank" rel="noopener noreferrer"
+         class="h-8 px-3 rounded-xl bg-tds-blue hover:bg-tds-blueHover text-white text-[12px] font-semibold flex items-center gap-1.5 shrink-0 transition-all active:scale-95 shadow-sm">
+        <span>풀스택 소스</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    </div>
+
+    <!-- 1. 프로필 카드 (토스 디자인 시스템 스타일) -->
+    <section class="w-full bg-white rounded-3xl border border-tds-border p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col items-center text-center">
+      
+      <!-- 아바타 (모던 그라디언트 링 & 아바타) -->
+      <div class="relative mb-4">
+        <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-blue-500 via-indigo-500 to-sky-400 p-[3px] shadow-md">
+          <div class="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+            <div class="w-full h-full bg-blue-50 text-tds-blue flex items-center justify-center font-bold text-2xl tracking-tight">
+              LINK
+            </div>
+          </div>
+        </div>
+        <span class="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full"></span>
+      </div>
+
+      <!-- 성명 (user name) -->
+      <h1 class="text-2xl font-bold text-tds-textPrimary tracking-tight mb-1">
+        노기훈
+      </h1>
+
+      <!-- 닉네임 (display name) -->
+      <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#f2f4f6] text-[13px] font-semibold text-tds-textSecondary mb-3">
+        <span>@tkflrnstk</span>
+      </div>
+
+      <!-- 자기소개 (bio) -->
+      <p class="text-[14px] text-tds-textSecondary leading-relaxed max-w-[340px] break-keep mb-6">
+        정부 항해사이자 개발자 노기훈의 마이링크입니다.<br />
+        항해와 코드, 배움의 기록을 모아두었습니다.
+      </p>
+
+      <!-- 주소 공유 / 복사 버튼 -->
+      <button type="button" onclick="copyCurrentPageUrl()"
+              class="w-full h-11 rounded-2xl bg-[#f2f4f6] hover:bg-[#e5e8eb] text-tds-textPrimary text-[13px] font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+        <svg class="w-4 h-4 text-tds-textSecondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        <span>마이링크 주소 복사하기</span>
+      </button>
+    </section>
+
+    <!-- 2. 링크 목록 헤더 -->
+    <div class="flex items-center justify-between px-2 pt-2">
+      <span class="text-[15px] font-bold text-tds-textPrimary">연결된 링크</span>
+      <span class="text-[12px] font-semibold text-tds-textMuted">총 8개</span>
+    </div>
+
+    <!-- 3. 링크 목록 (8개 카드) -->
+    <div class="flex flex-col gap-2.5">
+
+      <!-- 링크 1: GitHub -->
+      <a href="https://github.com/tkflrnstk" target="_blank" rel="noopener noreferrer"
+         class="group bg-white hover:bg-[#fafafa] border border-tds-border hover:border-blue-400/60 p-4 rounded-2xl transition-all duration-150 flex items-center justify-between shadow-2xs hover:shadow-sm active:scale-[0.99]">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+            🐙
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[15px] font-semibold text-tds-textPrimary truncate">GitHub 코드 저장소</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#e60012] text-white shrink-0">코드</span>
+            </div>
+            <span class="text-[12px] text-tds-textSecondary font-mono truncate">@tkflrnstk</span>
+            <span class="text-[12px] text-tds-textMuted truncate">개발 프로젝트와 오픈소스 코드 모음</span>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-tds-textMuted group-hover:text-tds-blue group-hover:translate-x-0.5 transition-all shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- 링크 2: 기술 & 항해 블로그 -->
+      <a href="https://github.com/tkflrnstk" target="_blank" rel="noopener noreferrer"
+         class="group bg-white hover:bg-[#fafafa] border border-tds-border hover:border-blue-400/60 p-4 rounded-2xl transition-all duration-150 flex items-center justify-between shadow-2xs hover:shadow-sm active:scale-[0.99]">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+            📝
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[15px] font-semibold text-tds-textPrimary truncate">기술 & 항해 블로그</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#3d4f97] text-white shrink-0">기록</span>
+            </div>
+            <span class="text-[12px] text-tds-textSecondary font-mono truncate">blog.nolink.dev</span>
+            <span class="text-[12px] text-tds-textMuted truncate">공부 기록과 바이브 코딩, 항해 이야기</span>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-tds-textMuted group-hover:text-tds-blue group-hover:translate-x-0.5 transition-all shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- 링크 3: 이메일 연락하기 -->
+      <a href="mailto:tkflrnstk@gmail.com"
+         class="group bg-white hover:bg-[#fafafa] border border-tds-border hover:border-blue-400/60 p-4 rounded-2xl transition-all duration-150 flex items-center justify-between shadow-2xs hover:shadow-sm active:scale-[0.99]">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+            ✉️
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[15px] font-semibold text-tds-textPrimary truncate">이메일 연락하기</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#206479] text-white shrink-0">문의</span>
+            </div>
+            <span class="text-[12px] text-tds-textSecondary font-mono truncate">tkflrnstk@gmail.com</span>
+            <span class="text-[12px] text-tds-textMuted truncate">프로젝트 제안 및 방명록 문의</span>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-tds-textMuted group-hover:text-tds-blue group-hover:translate-x-0.5 transition-all shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- 링크 4: LinkedIn 프로필 -->
+      <a href="https://linkedin.com/in/tkflrnstk" target="_blank" rel="noopener noreferrer"
+         class="group bg-white hover:bg-[#fafafa] border border-tds-border hover:border-blue-400/60 p-4 rounded-2xl transition-all duration-150 flex items-center justify-between shadow-2xs hover:shadow-sm active:scale-[0.99]">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div class="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+            💼
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[15px] font-semibold text-tds-textPrimary truncate">LinkedIn 프로필</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#0077b5] text-white shrink-0">경력</span>
+            </div>
+            <span class="text-[12px] text-tds-textSecondary font-mono truncate">linkedin.com/in/tkflrnstk</span>
+            <span class="text-[12px] text-tds-textMuted truncate">경력 사항 및 네트워킹</span>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-tds-textMuted group-hover:text-tds-blue group-hover:translate-x-0.5 transition-all shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- 링크 5: 포트폴리오 사이트 -->
+      <a href="https://github.com/tkflrnstk" target="_blank" rel="noopener noreferrer"
+         class="group bg-white hover:bg-[#fafafa] border border-tds-border hover:border-blue-400/60 p-4 rounded-2xl transition-all duration-150 flex items-center justify-between shadow-2xs hover:shadow-sm active:scale-[0.99]">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div class="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+            🎨
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[15px] font-semibold text-tds-textPrimary truncate">포트폴리오 사이트</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#7c3aed] text-white shrink-0">포폴</span>
+            </div>
+            <span class="text-[12px] text-tds-textSecondary font-mono truncate">portfolio.nolink.dev</span>
+            <span class="text-[12px] text-tds-textMuted truncate">작업물 쇼케이스 및 프로젝트 소개</span>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-tds-textMuted group-hover:text-tds-blue group-hover:translate-x-0.5 transition-all shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- 링크 6: YouTube 채널 -->
+      <a href="https://youtube.com/@NoKihun_Dev" target="_blank" rel="noopener noreferrer"
+         class="group bg-white hover:bg-[#fafafa] border border-tds-border hover:border-blue-400/60 p-4 rounded-2xl transition-all duration-150 flex items-center justify-between shadow-2xs hover:shadow-sm active:scale-[0.99]">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div class="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+            🎬
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[15px] font-semibold text-tds-textPrimary truncate">YouTube 채널</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#ff0000] text-white shrink-0">영상</span>
+            </div>
+            <span class="text-[12px] text-tds-textSecondary font-mono truncate">@NoKihun_Dev</span>
+            <span class="text-[12px] text-tds-textMuted truncate">개발 브이로그 & 항해 영상</span>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-tds-textMuted group-hover:text-tds-blue group-hover:translate-x-0.5 transition-all shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- 링크 7: 노션 이력서 -->
+      <a href="https://github.com/tkflrnstk" target="_blank" rel="noopener noreferrer"
+         class="group bg-white hover:bg-[#fafafa] border border-tds-border hover:border-blue-400/60 p-4 rounded-2xl transition-all duration-150 flex items-center justify-between shadow-2xs hover:shadow-sm active:scale-[0.99]">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div class="w-11 h-11 rounded-xl bg-stone-100 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+            📄
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[15px] font-semibold text-tds-textPrimary truncate">노션 이력서</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#374151] text-white shrink-0">이력서</span>
+            </div>
+            <span class="text-[12px] text-tds-textSecondary font-mono truncate">notion.so/nkh-resume</span>
+            <span class="text-[12px] text-tds-textMuted truncate">항해사 & 개발자 통합 이력서</span>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-tds-textMuted group-hover:text-tds-blue group-hover:translate-x-0.5 transition-all shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- 링크 8: 오픈카카오 채팅 -->
+      <a href="https://github.com/tkflrnstk" target="_blank" rel="noopener noreferrer"
+         class="group bg-white hover:bg-[#fafafa] border border-tds-border hover:border-blue-400/60 p-4 rounded-2xl transition-all duration-150 flex items-center justify-between shadow-2xs hover:shadow-sm active:scale-[0.99]">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div class="w-11 h-11 rounded-xl bg-yellow-100 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+            💬
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[15px] font-semibold text-tds-textPrimary truncate">오픈카카오 채팅</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#fee500] text-black shrink-0">채팅</span>
+            </div>
+            <span class="text-[12px] text-tds-textSecondary font-mono truncate">open.kakao.com/nkh</span>
+            <span class="text-[12px] text-tds-textMuted truncate">빠른 문의 및 협업 제안</span>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-tds-textMuted group-hover:text-tds-blue group-hover:translate-x-0.5 transition-all shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="mt-8 mb-4 text-center text-[12px] text-tds-textMuted flex flex-col items-center gap-1">
+      <p>© 2026 MyLink · All rights reserved.</p>
+      <p class="text-[11px] text-gray-400">Created for Hanyang e-learning Web Course Assignment</p>
+    </footer>
+
+  </main>
+
+  <script>
+    // 주소 복사 및 토스트 표시 함수
+    function copyCurrentPageUrl() {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('마이링크 주소가 복사되었습니다!');
+      }).catch(() => {
+        showToast('주소 복사에 실패했습니다.');
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toast-message');
+      toastMessage.textContent = message;
+      
+      toast.classList.remove('hidden', 'toast-animate-out');
+      toast.classList.add('toast-animate-in');
+
+      setTimeout(() => {
+        toast.classList.remove('toast-animate-in');
+        toast.classList.add('toast-animate-out');
+        setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 200);
+      }, 1800);
+    }
+  </script>
+</body>
+</html>
